@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorio del Cuerpo Humano 🔬</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: rgba(30, 41, 59, 0.85);
+      --accent-neon: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-pink: #f43f5e;
+      --accent-yellow: #eab308;
+      --text-light: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(34, 197, 94, 0.15) 0%, transparent 40%);
+    }
+
+    /* Encabezado del Laboratorio */
+    header {
+      width: 100%;
+      padding: 15px 30px;
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 2px solid var(--accent-neon);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: var(--accent-neon);
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .scoreboard {
+      background: #1e293b;
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 2px solid var(--accent-yellow);
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--accent-yellow);
+      box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+    }
+
+    /* Contenedor Principal */
+    .lab-container {
+      display: flex;
+      gap: 30px;
+      margin: 20px;
+      max-width: 1200px;
+      width: 95%;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Panel del Esquema */
+    .body-panel {
+      position: relative;
+      background: var(--panel-bg);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 20px;
+      width: 380px;
+      height: 520px;
+      display: flex;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .body-svg {
+      height: 100%;
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.3));
+    }
+
+    /* Zonas de Soltar (Dropzones) */
+    .dropzone {
+      position: absolute;
+      width: 110px;
+      height: 38px;
+      border: 2px dashed var(--accent-neon);
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .dropzone.hovered {
+      background: rgba(56, 189, 248, 0.4);
+      transform: scale(1.05);
+    }
+
+    .dropzone.correct {
+      border: 2px solid var(--accent-green);
+      background: rgba(34, 197, 94, 0.3);
+      color: white;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+
+    /* Posicionamiento de etiquetas en el cuerpo */
+    #drop-cabeza { top: 35px; left: 15px; }
+    #drop-pecho  { top: 180px; left: 15px; }
+    #drop-brazo  { top: 220px; right: 15px; }
+    #drop-mano   { top: 310px; right: 15px; }
+    #drop-pierna { top: 380px; left: 15px; }
+    #drop-pie    { top: 450px; right: 15px; }
+
+    /* Panel de Piezas / Banco */
+    .controls-panel {
+      flex: 1;
+      min-width: 320px;
+      background: var(--panel-bg);
+      border-radius: 20px;
+      padding: 25px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .instructions {
+      background: rgba(56, 189, 248, 0.1);
+      border-left: 4px solid var(--accent-neon);
+      padding: 12px;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .labels-bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 15px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 15px;
+      min-height: 120px;
+    }
+
+    .draggable-label {
+      background: linear-gradient(135deg, #38bdf8, #0284c7);
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: grab;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .draggable-label:active {
+      cursor: grabbing;
+      transform: scale(1.05);
+    }
+
+    .draggable-label.dragging {
+      opacity: 0.5;
+    }
+
+    /* Retroalimentación Científica */
+    .feedback-box {
+      margin-top: auto;
+      padding: 15px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.8);
+      text-align: center;
+      font-weight: bold;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Botón de Reinicio */
+    .reset-btn {
+      background: var(--accent-pink);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4);
+    }
+
+    .reset-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(244, 63, 94, 0.6);
+    }
+
+    /* Animaciones */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .celebrate {
+      animation: pulse 0.5s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🧪 LabCuerpo 3000</h1>
+    <div class="scoreboard">Puntos: <span id="score">0</span> 🌟</div>
+  </header>
+
+  <div class="lab-container">
+    
+    <!-- Panel del Cuerpo Humano -->
+    <div class="body-panel">
+      <!-- Ilustración Vectorial del Cuerpo -->
+      <svg class="body-svg" viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Cabeza -->
+        <circle cx="100" cy="50" r="30" fill="#fbcfe8" stroke="#38bdf8" stroke-width="3"/>
+        <circle cx="90" cy="45" r="4" fill="#1e293b"/>
+        <circle cx="110" cy="45" r="4" fill="#1e293b"/>
+        <path d="M 90 60 Q 100 70 110 60" stroke="#1e293b" stroke-width="3" fill="none"/>
+        
+        <!-- Torso / Pecho -->
+        <rect x="70" y="85" width="60" height="120" rx="15" fill="#38bdf8" stroke="#0284c7" stroke-width="3"/>
+        
+        <!-- Brazos -->
+        <rect x="35" y="90" width="25" height="100" rx="10" fill="#fbcfe8" stroke="#38bdf8" stroke-width="3"/>
+        <rect x="140" y="90" width="25" height="100" rx="10" fill="#fbcfe8" stroke="#38bdf8" stroke-width="3"/>
+        
+        <!-- Manos -->
+        <circle cx="47" cy="200" r="12" fill="#fbcfe8"/>
+        <circle cx="152" cy="200" r="12" fill="#fbcfe8"/>
+        
+        <!-- Piernas -->
+        <rect x="72" y="210" width="22" height="130" rx="10" fill="#fbcfe8" stroke="#38bdf8" stroke-width="3"/>
+        <rect x="106" y="210" width="22" height="130" rx="10" fill="#fbcfe8" stroke="#38bdf8" stroke-width="3"/>
+        
+        <!-- Pies -->
+        <path d="M 65 340 L 94 340 L 94 355 L 65 355 Z" fill="#38bdf8" rx="5"/>
+        <path d="M 106 340 L 135 340 L 135 355 L 106 355 Z" fill="#38bdf8" rx="5"/>
+      </svg>
+
+      <!-- Áreas de Destino (Dropzones) -->
+      <div class="dropzone" data-part="cabeza" id="drop-cabeza">¿Cabeza?</div>
+      <div class="dropzone" data-part="pecho" id="drop-pecho">¿Pecho?</div>
+      <div class="dropzone" data-part="brazo" id="drop-brazo">¿Brazo?</div>
+      <div class="dropzone" data-part="mano" id="drop-mano">¿Mano?</div>
+      <div class="dropzone" data-part="pierna" id="drop-pierna">¿Pierna?</div>
+      <div class="dropzone" data-part="pie" id="drop-pie">¿Pie?</div>
+    </div>
+
+    <!-- Panel de Control y Etiquetas -->
+    <div class="controls-panel">
+      <h2>Misión: Identificar el Cuerpo</h2>
+      <div class="instructions">
+        🧬 <strong>Instrucciones del Científico:</strong> Arrastra cada etiqueta desde la bandeja hasta la casilla correspondiente en el esquema del sujeto de pruebas.
+      </div>
+
+      <div class="labels-bank" id="bank">
+        <div class="draggable-label" draggable="true" id="label-cabeza" data-part="cabeza">Cabeza</div>
+        <div class="draggable-label" draggable="true" id="label-pecho" data-part="pecho">Pecho</div>
+        <div class="draggable-label" draggable="true" id="label-brazo" data-part="brazo">Brazo</div>
+        <div class="draggable-label" draggable="true" id="label-mano" data-part="mano">Mano</div>
+        <div class="draggable-label" draggable="true" id="label-pierna" data-part="pierna">Pierna</div>
+        <div class="draggable-label" draggable="true" id="label-pie" data-part="pie">Pie</div>
+      </div>
+
+      <div class="feedback-box" id="feedback">
+        ¡Bienvenido al laboratorio! Esperando tus análisis...
+      </div>
+
+      <button class="reset-btn" onclick="resetGame()">🔄 Reiniciar Experimento</button>
+    </div>
+
+  </div>
+
+  <script>
+    let score = 0;
+    let correctCount = 0;
+    const totalParts = 6;
+
+    const draggables = document.querySelectorAll('.draggable-label');
+    const dropzones = document.querySelectorAll('.dropzone');
+    const scoreDisplay = document.getElementById('score');
+    const feedbackBox = document.getElementById('feedback');
+
+    // Eventos para los elementos arrastables
+    draggables.forEach(draggable => {
+      draggable.addEventListener('dragstart', (e) => {
+        draggable.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', draggable.dataset.part);
+        e.dataTransfer.setData('element-id', draggable.id);
+      });
+
+      draggable.addEventListener('dragend', () => {
+        draggable.classList.remove('dragging');
+      });
+    });
+
+    // Eventos para las zonas de destino
+    dropzones.forEach(zone => {
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!zone.classList.contains('correct')) {
+          zone.classList.add('hovered');
+        }
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('hovered');
+      });
+
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('hovered');
+
+        if (zone.classList.contains('correct')) return;
+
+        const draggedPart = e.dataTransfer.getData('text/plain');
+        const draggedId = e.dataTransfer.getData('element-id');
+        const targetPart = zone.dataset.part;
+
+        if (draggedPart === targetPart) {
+          // Acierto
+          const draggedElement = document.getElementById(draggedId);
+          zone.textContent = draggedElement.textContent;
+          zone.classList.add('correct');
+          draggedElement.style.display = 'none';
+
+          // Actualizar Puntuación
+          score += 100;
+          correctCount++;
+          scoreDisplay.textContent = score;
+
+          showFeedback("✨ ¡Excelente análisis científico! +100 PTS", "#22c55e");
+
+          if (correctCount === totalParts) {
+            handleWin();
+          }
+
+        } else {
+          // Error
+          score = Math.max(0, score - 20);
+          scoreDisplay.textContent = score;
+          showFeedback("⚠️ ¡Muestra incorrecta! Intenta de nuevo (-20 PTS)", "#f43f5e");
+        }
+      });
+    });
+
+    function showFeedback(message, color) {
+      feedbackBox.textContent = message;
+      feedbackBox.style.color = color;
+      feedbackBox.style.borderColor = color;
+    }
+
+    function handleWin() {
+      showFeedback("🎉 ¡EXPERIMENTO COMPLETADO CON ÉXITO! ¡ERES UN GRAN CIENTÍFICO!", "#eab308");
+      document.querySelector('.scoreboard').classList.add('celebrate');
+    }
+
+    function resetGame() {
+      score = 0;
+      correctCount = 0;
+      scoreDisplay.textContent = score;
+      document.querySelector('.scoreboard').classList.remove('celebrate');
+
+      // Restaurar Dropzones
+      dropzones.forEach(zone => {
+        zone.classList.remove('correct');
+        const partName = zone.dataset.part;
+        zone.textContent = `¿${partName.charAt(0).toUpperCase() + partName.slice(1)}?`;
+      });
+
+      // Restaurar Etiquetas y Desordenarlas aleatoriamente
+      const bank = document.getElementById('bank');
+      draggables.forEach(label => {
+        label.style.display = 'block';
+        bank.appendChild(label);
+      });
+
+      // Mezclar las piezas en el banco
+      for (let i = bank.children.length; i > 0; i--) {
+        bank.appendChild(bank.children[Math.floor(Math.random() * i)]);
+      }
+
+      showFeedback("¡Laboratorio reiniciado! Comienza el nuevo análisis.", "#38bdf8");
+    }
+
+    // Desordenar etiquetas al cargar la página por primera vez
+    resetGame();
+  </script>
+</body>
+</html>
